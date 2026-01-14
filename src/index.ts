@@ -41,7 +41,7 @@ export default {
 };
 
 // Durable Object
-export class WebSocketServer extends DurableObject {
+export class MyDurableObject extends DurableObject {
     // Keeps track of all WebSocket connections
     sessions: Map<WebSocket, { [key: string]: string }>;
 

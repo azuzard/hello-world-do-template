@@ -21,8 +21,8 @@ export default {
 
             // Since we are hard coding the Durable Object ID by providing the constant name 'foo',
             // all requests to this Worker will be sent to the same Durable Object instance.
-            let id = env.WEBSOCKET_SERVER.idFromName('foo');
-            let stub = env.WEBSOCKET_SERVER.get(id);
+            let id = env.MY_DURABLE_OBJECT.idFromName('foo');
+            let stub = env.MY_DURABLE_OBJECT.get(id);
 
             return stub.fetch(request);
         }

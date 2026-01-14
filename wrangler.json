@@ -7,7 +7,7 @@
 	"migrations": [
 		{
 			"new_sqlite_classes": [
-				"WebSocketServer"
+				"MyDurableObject"
 			],
 			"tag": "v1"
 		}
@@ -15,8 +15,8 @@
 	"durable_objects": {
 		"bindings": [
 			{
-				"name": "WEBSOCKET_SERVER",
-				"class_name": "WebSocketServer"
+				"class_name": "MyDurableObject",
+				"name": "MY_DURABLE_OBJECT"
 			}
 		]
 	},

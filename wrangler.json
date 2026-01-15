@@ -6,8 +6,11 @@
 	"upload_source_maps": true,
 	"migrations": [
 		{
-			"new_sqlite_classes": [
-				"WebSocketServer"
+			"renamed_classes": [
+				{
+					"from": "MyDurableObject",
+					"to": "WebSocketServer"
+				}
 			],
 			"tag": "v1.1.0"
 		}

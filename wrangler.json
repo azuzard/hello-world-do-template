@@ -9,7 +9,7 @@
 			"new_sqlite_classes": [
 				"WebSocketServer"
 			],
-			"tag": "v1"
+			"tag": "v1.1.0"
 		}
 	],
 	"durable_objects": {

@@ -21,8 +21,8 @@ export default {
 
             // Since we are hard coding the Durable Object ID by providing the constant name 'foo',
             // all requests to this Worker will be sent to the same Durable Object instance.
-            let id = env.MY_DURABLE_OBJECT.idFromName('foo');
-            let stub = env.MY_DURABLE_OBJECT.get(id);
+            let id = env.WEBSOCKET_SERVER.idFromName('foo');
+            let stub = env.WEBSOCKET_SERVER.get(id);
 
             return stub.fetch(request);
         }
@@ -41,7 +41,7 @@ export default {
 };
 
 // Durable Object
-export class MyDurableObject extends DurableObject {
+export class WebSocketServer extends DurableObject {
     // Keeps track of all WebSocket connections
     sessions: Map<WebSocket, { [key: string]: string }>;
 

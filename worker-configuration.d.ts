@@ -4,10 +4,10 @@
 declare namespace Cloudflare {
     interface GlobalProps {
         mainModule: typeof import("./src/index");
-        durableNamespaces: "MyDurableObject";
+        durableNamespaces: "WebSocketServer";
     }
     interface Env {
-        MY_DURABLE_OBJECT: DurableObjectNamespace<import("./src/index").MyDurableObject>;
+        WEBSOCKET_SERVER: DurableObjectNamespace<import("./src/index").WebSocketServer>;
     }
 }
 interface Env extends Cloudflare.Env { }

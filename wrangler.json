@@ -6,24 +6,19 @@
 	"upload_source_maps": true,
 	"migrations": [
 		{
-			"renamed_classes": [
-				{
-					"from": "MyDurableObject",
-					"to": "WebSocketServer"
-				}
-			],
-			"tag": "v1.1.0"
+			"new_sqlite_classes": ["$DurableObject"],
+			"tag": "v1.2.0"
 		}
 	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "WebSocketServer",
-				"name": "WEBSOCKET_SERVER"
+				"class_name": "$DurableObject",
+				"name": "$DurableObject"
 			}
 		]
 	},
 	"observability": {
-		"enabled": true
+		"enabled": false
 	}
 }

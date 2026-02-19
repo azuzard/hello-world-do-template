@@ -1,108 +1,66 @@
-import { DurableObject } from 'cloudflare:workers';
+import { DurableObject } from 'cloudflare:workers'
+import crossws from "crossws/adapters/cloudflare"
 
-// Worker
+const ws = crossws({
+    // bindingName: "$DurableObject",
+    // instanceName: "crossws",
+    hooks: {
+        message(peer, message) {
+            const data = message.json() as { topic?: string, message?: string }
+            // Subscribe to topic if specified in message
+            if (data?.topic) {
+                peer.subscribe(data.topic)
+                console.log(`✅ Subscribed to topic: ${data.topic}`)
+            }
+            // Publish message to topic
+            if (data?.topic && data?.message) {
+                peer.publish(data.topic, data)
+            }
+        },
+        open(peer) {
+            peer.send("Welcome to the WebSocket server!")
+        },
+        close(peer, details) {
+            peer.topics.forEach(topic => peer.publish(topic, { user: "server", message: `${peer} left!` }))
+            peer.close()
+        },
+        error(peer, error) {
+            console.error("WebSocket error:", error)
+        }
+    },
+})
+
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-        if (request.url.endsWith('/websocket')) {
-            // Expect to receive a WebSocket Upgrade request.
-            // If there is one, accept the request and return a WebSocket Response.
-            const upgradeHeader = request.headers.get('Upgrade');
-            if (!upgradeHeader || upgradeHeader !== 'websocket') {
-                return new Response('Worker expected Upgrade: websocket', {
-                    status: 426,
-                });
-            }
-
-            if (request.method !== 'GET') {
-                return new Response('Worker expected GET method', {
-                    status: 400,
-                });
-            }
-
-            // Since we are hard coding the Durable Object ID by providing the constant name 'foo',
-            // all requests to this Worker will be sent to the same Durable Object instance.
-            let id = env.WEBSOCKET_SERVER.idFromName('foo');
-            let stub = env.WEBSOCKET_SERVER.get(id);
-
-            return stub.fetch(request);
+        if (request.url.includes("/websocket") && request.headers.get("upgrade") === "websocket") {
+            return ws.handleUpgrade(request, env, ctx)
         }
-
         return new Response(
-            `Supported endpoints:
-/websocket: Expects a WebSocket upgrade request`,
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'text/plain',
-                },
-            }
-        );
+            "To use: { \"topic\": \"chat\", \"message\": \"Hello from client!\" }",
+            { headers: { "content-type": "text/html" } },
+        )
     },
-};
+}
 
-// Durable Object
-export class WebSocketServer extends DurableObject {
-    // Keeps track of all WebSocket connections
-    sessions: Map<WebSocket, { [key: string]: string }>;
-
+export class $DurableObject extends DurableObject {
     constructor(ctx: DurableObjectState, env: Env) {
-        super(ctx, env);
-        this.sessions = new Map();
+        super(ctx, env)
+        ws.handleDurableInit(this, ctx, env)
     }
 
-    async fetch(request: Request): Promise<Response> {
-        // Creates two ends of a WebSocket connection.
-        const webSocketPair = new WebSocketPair();
-        const [client, server] = Object.values(webSocketPair);
-
-        // Calling `accept()` tells the runtime that this WebSocket is to begin terminating
-        // request within the Durable Object. It has the effect of "accepting" the connection,
-        // and allowing the WebSocket to send and receive messages.
-        server.accept();
-
-        // Generate a random UUID for the session.
-        const id = crypto.randomUUID();
-        // Add the WebSocket connection to the map of active sessions.
-        this.sessions.set(server, { id });
-
-        server.addEventListener('message', (event) => {
-            this.handleWebSocketMessage(server, event.data);
-        });
-
-        // If the client closes the connection, the runtime will close the connection too.
-        server.addEventListener('close', () => {
-            this.handleConnectionClose(server);
-        });
-
-        return new Response(null, {
-            status: 101,
-            webSocket: client,
-        });
+    fetch(request: Request) {
+        return ws.handleDurableUpgrade(this, request)
     }
 
-    async handleWebSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-        const connection = this.sessions.get(ws)!;
-
-        // Reply back with the same message to the connection
-        ws.send(`[Durable Object] message: ${message}, from: ${connection.id}, to: the initiating client. Total connections: ${this.sessions.size}`);
-
-        // Broadcast the message to all the connections,
-        // except the one that sent the message.
-        this.sessions.forEach((_, session) => {
-            if (session !== ws) {
-                session.send(`[Durable Object] message: ${message}, from: ${connection.id}, to: all clients except the initiating client. Total connections: ${this.sessions.size}`);
-            }
-        });
-
-        // Broadcast the message to all the connections,
-        // including the one that sent the message.
-        this.sessions.forEach((_, session) => {
-            session.send(`[Durable Object] message: ${message}, from: ${connection.id}, to: all clients. Total connections: ${this.sessions.size}`);
-        });
+    webSocketMessage(client: WebSocket, message: string) {
+        return ws.handleDurableMessage(this, client, message)
     }
 
-    async handleConnectionClose(ws: WebSocket) {
-        this.sessions.delete(ws);
-        ws.close(1000, 'Durable Object is closing WebSocket');
+    webSocketPublish(topic: string, message: string, opts: any) {
+        return ws.handleDurablePublish(this, topic, message, opts)
+    }
+
+    webSocketClose(client: WebSocket, code: number, reason: string, wasClean: boolean) {
+        return ws.handleDurableClose(this, client, code, reason, wasClean)
     }
 }

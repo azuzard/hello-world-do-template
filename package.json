@@ -25,5 +25,9 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev"
+	},
+	"dependencies": {
+		"crossws": "^0.4.4",
+		"srvx": "^0.11.7"
 	}
 }

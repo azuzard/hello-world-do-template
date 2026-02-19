@@ -7,6 +7,7 @@
 	"migrations": [
 		{
 			"new_sqlite_classes": ["$DurableObject"],
+			"deleted_classes": ["WebSocketServer"],
 			"tag": "v1.2.0"
 		}
 	],
